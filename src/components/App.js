@@ -1,37 +1,50 @@
-import React, { Component } from 'react';
-
-import './App.css';
-
-import Header from './Header/Header';
-import Compose from './Compose/Compose';
+import axios from "axios";
+import React, { Component } from "react";
+import "./App.css";
+import Compose from "./Compose/Compose";
+import Header from "./Header/Header";
+import Post from "./Post/Post";
 
 class App extends Component {
   constructor() {
     super();
 
     this.state = {
-      posts: []
+      posts: [],
+      baseUrl: "https://practiceapi.devmountain.com/api"
     };
 
-    this.updatePost = this.updatePost.bind( this );
-    this.deletePost = this.deletePost.bind( this );
-    this.createPost = this.createPost.bind( this );
+    this.updatePost = this.updatePost.bind(this);
+    this.deletePost = this.deletePost.bind(this);
+    this.createPost = this.createPost.bind(this);
   }
-  
+
   componentDidMount() {
-
+    axios
+      .get(`${this.state.baseUrl}/posts`)
+      .then(response => this.setState({ posts: response.data }))
+      .catch(error => console.log(error));
   }
 
-  updatePost() {
-  
+  updatePost(text, id) {
+    axios
+      .put(`${this.state.baseUrl}/posts?id=${id}`, { text })
+      // .then(response => console.log(response))
+      .then(response => this.setState({ posts: response.data }))
+      .catch(error => console.log(error));
   }
 
-  deletePost() {
-
+  deletePost(id) {
+    axios.delete(`${this.state.baseUrl}/posts?id=${id}`).then(results => {
+      this.setState({ posts: results.data });
+    });
   }
 
-  createPost() {
-
+  createPost(text) {
+    axios
+      .post(`${this.state.baseUrl}/posts`, { text })
+      .then(response => this.setState({ posts: response.data }))
+      .catch(error => console.log(error));
   }
 
   render() {
@@ -42,9 +55,18 @@ class App extends Component {
         <Header />
 
         <section className="App__content">
-
-          <Compose />
-          
+          <Compose createPostFn={this.createPost} />
+          {console.log(posts)}
+          {posts.map((post, i) => (
+            <Post
+              key={post.id}
+              text={post.text}
+              date={post.date}
+              updatePostFn={this.updatePost}
+              id={post.id}
+              deletePostFn={this.deletePost}
+            />
+          ))}
         </section>
       </div>
     );
